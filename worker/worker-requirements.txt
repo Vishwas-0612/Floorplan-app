@@ -1,0 +1,32 @@
+# # core
+# fastapi
+# uvicorn[standard]
+# redis
+# rq
+# pydantic
+# python-multipart
+# aiofiles
+# boto3
+# python-dotenv
+
+# # ML stack (pinned safe versions for CUDA 11.8 + PyTorch 2.1)
+# diffusers==0.25.0
+# transformers==4.36.2
+# accelerate==0.24.1
+# xformers==0.0.23
+# safetensors
+# huggingface-hub>=0.20.0
+# # note: torch is provided by base image, do NOT include torch here
+
+# Stable, compatible ML versions
+diffusers==0.24.0
+transformers==4.36.2
+accelerate==0.24.1
+xformers==0.0.23
+safetensors
+huggingface-hub==0.24.0
+
+# worker-related core packages
+redis
+rq
+python-dotenv

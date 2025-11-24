@@ -1,0 +1,20 @@
+# fastapi
+# uvicorn[standard]
+# redis
+# rq
+# pydantic
+# python-multipart
+# diffusers>=0.23.0  # backend only needs API helpers; worker does heavy lifting
+# aiofiles
+# boto3
+# python-dotenv
+
+fastapi
+uvicorn[standard]
+redis
+rq
+pydantic
+python-multipart
+aiofiles
+boto3
+python-dotenv

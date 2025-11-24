@@ -1,0 +1,21 @@
+# Ignore HuggingFace cache
+hf_cache/
+**/hf_cache/
+
+# Ignore SD model folders
+models/
+models/**
+
+# Ignore logs
+data/*.txt
+
+# Python ignores
+__pycache__/
+*.pyc
+
+# Node/Next.js ignores
+frontend/.next/
+frontend/node_modules/
+
+# Docker
+*.env
