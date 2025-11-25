@@ -11,7 +11,6 @@ export const metadata: Metadata = {
   // <CHANGE> Updated metadata for floorplan generator
   title: "AI Floorplan Generator",
   description: "Generate architectural floorplans with AI",
-  generator: "v0.app",
   icons: {
     icon: [
       {
