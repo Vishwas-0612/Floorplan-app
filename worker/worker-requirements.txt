@@ -30,3 +30,5 @@ huggingface-hub==0.24.0
 redis
 rq
 python-dotenv
+google-genai>=1.0.0
+Pillow

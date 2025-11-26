@@ -28,6 +28,7 @@ export default function Generator() {
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [resultJobId, setResultJobId] = useState<string | null>(null);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -82,12 +83,14 @@ export default function Generator() {
             );
             setResultJobId(s.result.job_id);
             setLoadingProgress(0);
+            setIsRegenerating(false);
           } else {
             const errorMsg =
               s.result && s.result.error ? s.result.error : "unknown error";
             setStatus("failed: " + errorMsg);
             console.error("job completed with error", s.result);
             setLoadingProgress(0);
+            setIsRegenerating(false);
           }
         } else if (s.status === "failed" || s.status === "error") {
           const errorMsg =
@@ -99,6 +102,7 @@ export default function Generator() {
           setStatus("failed: " + errorMsg);
           console.error("job failed", s.result);
           setLoadingProgress(0);
+          setIsRegenerating(false);
         } else {
           pollStatus(id);
         }
@@ -153,11 +157,8 @@ export default function Generator() {
     </div>
   );
 
-  const isLoading =
-    !!status &&
-    !resultUrl &&
-    !status.includes("failed") &&
-    !status.includes("error");
+  const isGenerating =
+    !!status && !status.includes("failed") && !status.includes("error");
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -238,7 +239,7 @@ export default function Generator() {
                       target: { value: React.SetStateAction<string> };
                     }) => setPrompt(e.target.value)}
                     placeholder="e.g., open concept, south facing, large windows..."
-                    className="min-h-[100px] resize-none border-zinc-300 text-zinc-900 placeholder:text-zinc-400"
+                    className="min-h-[100px] resize-none border-zinc-300 text-white-900 placeholder:text-zinc-400"
                   />
                 </div>
 
@@ -246,9 +247,9 @@ export default function Generator() {
                 <Button
                   type="submit"
                   className="w-full rounded-sm bg-zinc-900 py-6 text-sm font-medium tracking-wide hover:bg-zinc-800"
-                  disabled={isLoading}
+                  disabled={isGenerating}
                 >
-                  {isLoading ? (
+                  {isGenerating && !resultUrl ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Processing...
@@ -280,7 +281,7 @@ export default function Generator() {
               )}
 
               {/* Loading State */}
-              {isLoading && (
+              {isGenerating && !resultUrl && (
                 <div className="flex min-h-[600px] flex-col items-center justify-center p-12">
                   <div className="w-full max-w-md space-y-6">
                     <div className="flex flex-col items-center">
@@ -323,12 +324,18 @@ export default function Generator() {
               {/* Result State */}
               {resultUrl && (
                 <div className="p-6">
-                  <div className="mb-4 overflow-hidden rounded-sm border border-zinc-200">
+                  <div className="mb-4 overflow-hidden rounded-sm border border-zinc-200 relative">
                     <img
                       src={resultUrl || "/placeholder.svg"}
                       alt="Generated Floorplan"
                       className="w-full"
                     />
+                    {isGenerating && isRegenerating && (
+                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                        <Loader2 className="h-12 w-12 animate-spin text-white" />
+                        <p className="text-white ml-2">Regenerating...</p>
+                      </div>
+                    )}
                   </div>
                   <div className="flex gap-3">
                     <Button
@@ -345,11 +352,36 @@ export default function Generator() {
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={() => {
-                        setResultUrl(null);
-                        setStatus(null);
-                        setJobId(null);
-                        setResultJobId(null);
+                      onClick={async () => {
+                        setIsRegenerating(true);
+                        const fd = new FormData();
+                        fd.append("sqft", sqft.toString());
+                        fd.append("garages", garages.toString());
+                        fd.append("bedrooms", bedrooms.toString());
+                        fd.append("bathrooms", bathrooms.toString());
+                        if (prompt) fd.append("prompt", prompt);
+                        if (file) fd.append("control_image", file);
+                        try {
+                          setLoadingProgress(0);
+                          const progressInterval = setInterval(() => {
+                            setLoadingProgress((prev) =>
+                              Math.min(prev + 10, 90)
+                            );
+                          }, 200);
+                          const data = await submitJob(fd);
+                          setJobId(data.job_id);
+                          setStatus("queued");
+                          setTimeout(() => {
+                            clearInterval(progressInterval);
+                            setLoadingProgress(100);
+                          }, 2000);
+                          pollStatus(data.job_id);
+                        } catch (e) {
+                          console.error(e);
+                          setStatus("error submitting job");
+                          setLoadingProgress(0);
+                          setIsRegenerating(false);
+                        }
                       }}
                       className="flex-1 rounded-sm border-zinc-300"
                     >

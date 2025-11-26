@@ -3,6 +3,12 @@ from pathlib import Path
 import torch
 from model_loader import load_pipeline
 
+# postprocessing: erase gibberish text and overlay labels via Gemini
+try:
+    from postprocess import enhance_floorplan
+except Exception:
+    enhance_floorplan = None
+
 # ------------------------------
 # LOAD MODEL ONCE (GLOBAL)
 # ------------------------------
@@ -62,6 +68,16 @@ def generate_floorplan(job_id: str, params: dict):
         )
 
         image = result.images[0]
+
+        # Attempt post-processing to fix gibberish text using Gemini
+        if enhance_floorplan is not None:
+            try:
+                print("🔧 Running post-processing (Gemini)...")
+                image = enhance_floorplan(image)
+            except Exception as e:
+                print(f"[postprocess] failed: {e}")
+        else:
+            print("[postprocess] enhance_floorplan not available (missing import or SDK)")
 
         out_path = OUTPUT_DIR / f"{job_id}.png"
         image.save(out_path)

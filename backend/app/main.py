@@ -1,11 +1,13 @@
 from dotenv import load_dotenv
+
 load_dotenv()
+
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import generate, status
+from app.api import generate, status, enhance
 
 app = FastAPI(title="FloorPlan Generator API")
 
@@ -21,6 +23,7 @@ app.add_middleware(
 # Routers
 app.include_router(generate.router, prefix="/api")
 app.include_router(status.router, prefix="/api")
+app.include_router(enhance.router, prefix="/api")
 
 # Serve generated images (PNG results)
 app.mount("/generated", StaticFiles(directory="/data/generated"), name="generated")
